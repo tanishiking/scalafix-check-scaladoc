@@ -14,7 +14,7 @@ lazy val commonSettings = Seq(
   ),
 )
 
-import ReleaseTransformations._
+// import ReleaseTransformations._
 lazy val publishingSettings = Seq(
   // publishing
   organization := "com.github.tanishiking",
@@ -41,26 +41,13 @@ lazy val publishingSettings = Seq(
       url("https://github.com/tanishiking/scalafix-check-scaladoc"),
       "scm:git:git@github.com:tanishiking/scalafix-check-scaladoc.git"
     )
-  ),
-  releaseProcess := Seq[ReleaseStep](
-    checkSnapshotDependencies,
-    inquireVersions,
-    runClean,
-    runTest,
-    setReleaseVersion,
-    commitReleaseVersion,
-    tagRelease,
-    releaseStepCommand("publishSigned"),
-    setNextVersion,
-    commitNextVersion,
-    releaseStepCommand("sonatypeRelease"),
-    pushChanges
   )
 )
 
 lazy val rules = project.settings(
-  moduleName := "scalafix",
+  moduleName := "scalafix-check-scaladoc",
   libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % V.scalafixVersion,
+  scalafixDependencies in ThisBuild += "com.github.tanishiking" %% "scalafix-check-scaladoc" % "0.0.1-SNAPSHOT",
 ).settings(commonSettings).settings(publishingSettings)
 
 lazy val input = project.settings(
