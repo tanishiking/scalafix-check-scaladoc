@@ -1,5 +1,6 @@
 /*
 rule = CheckScaladoc
+CheckScaladoc.files = ["input/src/main/scala/fix/"]
 */
 package fix
 
@@ -20,7 +21,7 @@ object BasicTestsForDefn { // assert: CheckScaladoc
   private def privateDefn(): Unit = {}
 
   // CheckScaladoc should assert lint error
-  // it doesn't have scaladoc and it doesn't have private modifier.
+  // it doesn't have scaladoc and it doesn't have protected or private modifier.
   protected def protectedDefn(): Unit = {}
 }
 

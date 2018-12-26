@@ -1,5 +1,6 @@
 /*
 rule = CheckScaladoc
+CheckScaladoc.files = ["input/src/main/scala/fix/"]
 */
 package fix
 

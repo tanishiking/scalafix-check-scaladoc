@@ -1,9 +1,10 @@
 package fix
 
+import metaconfig.Configured
+import scalafix.checkscaladoc.ScalafixAccess
 import scalafix.v1._
 
 import scala.collection.mutable.ListBuffer
-import scala.meta.Mod.Protected
 import scala.meta._
 import scala.meta.contrib.AssociatedComments
 // import scala.meta.contrib.ScaladocParser
@@ -11,15 +12,27 @@ import scala.meta.contrib.AssociatedComments
 /** Check if the public members or public package objects have scaladoc
   * and assert lint error if they don't have it.
   */
-class CheckScaladoc extends SyntacticRule("CheckScaladoc") {
+class CheckScaladoc(config: CheckScaladocConfig) extends SemanticRule("CheckScaladoc") {
   private[this] sealed trait Violation extends Diagnostic
   private[this] case class NoScaladoc(stat: Stat) extends Violation {
     override def message: String = s"$stat doesn't have scaladoc"
     override def position: scala.meta.Position = stat.pos
   }
+  def this() = this(CheckScaladocConfig())
 
-  override def fix(implicit doc: SyntacticDocument): Patch = {
-    checkTree(doc.tree).map(Patch.lint).asPatch
+  override def withConfiguration(config: Configuration): Configured[Rule] =
+    config.conf
+      .getOrElse("CheckScaladoc")(this.config)
+      .map { newConfig => new CheckScaladoc(newConfig) }
+
+  override def fix(implicit doc: SemanticDocument): Patch = {
+    val uri = ScalafixAccess.getTextDocument(doc).uri
+    println(uri)
+    if (config.matcher.matches(uri)) {
+      checkTree(doc.tree).map(Patch.lint).asPatch
+    } else {
+      List.empty.map(Patch.lint).asPatch
+    }
   }
 
   private[this] def checkTree(code: Tree): List[Violation] = {
@@ -39,7 +52,6 @@ class CheckScaladoc extends SyntacticRule("CheckScaladoc") {
       }
     }
     val traverser = new Traverser {
-      import CheckScaladoc.ModsOps
       // Scaladoc comments can go before
       // fields, methods, classes, traits, objects and even (especially) package objects.
       // https://docs.scala-lang.org/overviews/scaladoc/for-library-authors.html#where-to-put-scaladoc
@@ -47,33 +59,33 @@ class CheckScaladoc extends SyntacticRule("CheckScaladoc") {
         tree match {
           case dfn: Defn => dfn match {
             case node @ Defn.Var(mods, _, _, _) =>
-              if (mods.isPublic) violations ++= checkScaladoc(node)
+              if (isRuleCandidate(mods)) violations ++= checkScaladoc(node)
             case node @ Defn.Val(mods, _, _, _) =>
-              if (mods.isPublic) violations ++= checkScaladoc(node)
+              if (isRuleCandidate(mods)) violations ++= checkScaladoc(node)
             case node @ Defn.Def(mods, _, _, _, _, _) =>
-              if (mods.isPublic) violations ++= checkScaladoc(node)
+              if (isRuleCandidate(mods)) violations ++= checkScaladoc(node)
             case node @ Defn.Macro(mods, _, _, _, _, _) =>
-              if (mods.isPublic) violations ++= checkScaladoc(node)
+              if (isRuleCandidate(mods)) violations ++= checkScaladoc(node)
             case node @ Defn.Type(mods, _, _, _) =>
-              if (mods.isPublic) violations ++= checkScaladoc(node)
+              if (isRuleCandidate(mods)) violations ++= checkScaladoc(node)
             case node @ Defn.Trait(mods, _, _, _, _) =>
-              if (mods.isPublic) {
+              if (isRuleCandidate(mods)) {
                 violations ++= checkScaladoc(node)
                 super.apply(node)
               }
             case node @ Defn.Class(mods, _, _, _, _) =>
-              if (mods.isPublic) {
+              if (isRuleCandidate(mods)) {
                 violations ++= checkScaladoc(node)
                 super.apply(node)
               }
             case node @ Defn.Object(mods, _, _) =>
-              if (mods.isPublic) {
+              if (isRuleCandidate(mods)) {
                 violations ++= checkScaladoc(node)
                 super.apply(node)
               }
           }
           case node @ Pkg.Object(mods, _, _) =>
-            if (mods.isPublic) {
+            if (isRuleCandidate(mods)) {
               violations ++= checkScaladoc(node)
               super.apply(node)
             }
@@ -84,10 +96,12 @@ class CheckScaladoc extends SyntacticRule("CheckScaladoc") {
     traverser(code)
     violations.toList
   }
-}
 
-private object CheckScaladoc {
-  private implicit class ModsOps(private val mods: List[Mod]) extends AnyVal {
-    def isPublic: Boolean = !mods.exists(m => m.is[Mod.Private] || m.is[Protected])
+  private def isRuleCandidate(mods: List[Mod]): Boolean = {
+    config.access match {
+      case Private => true
+      case Protected => !mods.exists(m => m.is[Mod.Private])
+      case Public => !mods.exists(m => m.is[Mod.Private] || m.is[Mod.Protected])
+    }
   }
 }
