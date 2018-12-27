@@ -13,7 +13,7 @@ object DefnNestedPublicClass {
     */
   class PublicClass(private val x: Int) {
     final val Const = 100 // assert: CheckScaladoc
-    private val PrivateConst = 100
+    
     /** scaladoc
       */
     final val DocumentedConst = 100
@@ -27,7 +27,7 @@ object DefnNestedPublicClass {
     */
   trait PublicTrait {
     final val Const = 100 // assert: CheckScaladoc
-    private val PrivateConst = 100
+    
     /** scaladoc
       */
     final val DocumentedConst = 100
@@ -41,7 +41,7 @@ object DefnNestedPublicClass {
     */
   object PublicObject {
     final val Const = 100 // assert: CheckScaladoc
-    private val PrivateConst = 100
+    
     /** scaladoc
       */
     final val DocumentedConst = 100

@@ -10,7 +10,7 @@ object ObjectThatWontBeChecked {
 
   def commentedDefn(): Unit = {}
 
-  private def privateDefn(): Unit = {}
+  
 
   protected def protectedDefn(): Unit = {}
 }

@@ -18,7 +18,7 @@ object ConfigAccessProtected { // assert: CheckScaladoc
   // CheckScaladoc shouldn't assert lint error
   // if it has private modifier even though
   // it doesn't have scaladoc.
-  private def privateDefn(): Unit = {}
+  
 
   // CheckScaladoc should assert lint error
   // it doesn't have scaladoc and it doesn't have private modifier.

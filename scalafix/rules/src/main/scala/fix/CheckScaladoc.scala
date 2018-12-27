@@ -9,7 +9,7 @@ import scala.meta._
 import scala.meta.contrib.AssociatedComments
 // import scala.meta.contrib.ScaladocParser
 
-/** Check if the public members or public package objects have scaladoc
+/** CheckScaladoc checks if the public members or public package objects have scaladoc
   * and assert lint error if they don't have it.
   */
 class CheckScaladoc(config: CheckScaladocConfig) extends SemanticRule("CheckScaladoc") {
@@ -27,7 +27,6 @@ class CheckScaladoc(config: CheckScaladocConfig) extends SemanticRule("CheckScal
 
   override def fix(implicit doc: SemanticDocument): Patch = {
     val uri = ScalafixAccess.getTextDocument(doc).uri
-    println(uri)
     if (config.matcher.matches(uri)) {
       checkTree(doc.tree).map(Patch.lint).asPatch
     } else {
@@ -43,7 +42,7 @@ class CheckScaladoc(config: CheckScaladocConfig) extends SemanticRule("CheckScal
       import scala.meta.contrib.implicits.CommentExtensions._
       comments.leading(stat).filter(_.isScaladoc).toList match {
         case Nil => List(NoScaladoc(stat))
-        case scaladocComment =>
+        case _ =>
           // Try to format the first sentence of a method as “Returns XXX”,
           // as in “Returns the first element of the List”,
           // as opposed to “this method returns” or “get the first” etc.
@@ -98,10 +97,16 @@ class CheckScaladoc(config: CheckScaladocConfig) extends SemanticRule("CheckScal
   }
 
   private def isRuleCandidate(mods: List[Mod]): Boolean = {
-    config.access match {
+    val canAccess = config.access match {
       case Private => true
       case Protected => !mods.exists(m => m.is[Mod.Private])
       case Public => !mods.exists(m => m.is[Mod.Private] || m.is[Mod.Protected])
     }
+    val overriddenMethod = if (config.requireDocOnInherited) {
+      true
+    } else {
+      !mods.exists(m => m.is[Mod.Override])
+    }
+    canAccess && overriddenMethod
   }
 }

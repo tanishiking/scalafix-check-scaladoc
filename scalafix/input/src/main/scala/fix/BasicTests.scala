@@ -18,7 +18,6 @@ object BasicTestsForDefn { // assert: CheckScaladoc
   // CheckScaladoc shouldn't assert lint error
   // if it has private modifier even though
   // it doesn't have scaladoc.
-  private def privateDefn(): Unit = {}
 
   // CheckScaladoc should assert lint error
   // it doesn't have scaladoc and it doesn't have protected or private modifier.
@@ -32,7 +31,7 @@ object BasicTestsForVar { // assert: CheckScaladoc
     */
   var varWithScaladoc = 1
 
-  private var privateVar = 1
+  
   protected var protectedVar = 1
 }
 
@@ -43,7 +42,7 @@ object BasicTestsForVal { // assert: CheckScaladoc
     */
   val valWithScaladoc = 1
 
-  private val privateVal = 1
+  
   protected val protectedVal = 1
 }
 
