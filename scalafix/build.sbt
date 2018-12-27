@@ -2,7 +2,7 @@ lazy val V = _root_.scalafix.sbt.BuildInfo
 
 lazy val commonSettings = Seq(
   scalaVersion := V.scala212,
-  version := "0.0.1",
+  version := "0.0.2",
   addCompilerPlugin(scalafixSemanticdb),
   scalacOptions ++= List(
     "-Yrangepos",
@@ -48,7 +48,7 @@ lazy val publishingSettings = Seq(
 lazy val rules = project.settings(
   moduleName := "scalafix-check-scaladoc",
   libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % V.scalafixVersion,
-  scalafixDependencies in ThisBuild += "com.github.tanishiking" %% "scalafix-check-scaladoc" % "0.0.1",
+  scalafixDependencies in ThisBuild += "com.github.tanishiking" %% "scalafix-check-scaladoc" % "0.0.2-SNAPSHOT",
 ).settings(commonSettings).settings(publishingSettings)
 
 lazy val input = project.settings(
